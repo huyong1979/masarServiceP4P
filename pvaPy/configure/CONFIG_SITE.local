@@ -1,0 +1,4 @@
+EPICS_HOST_ARCH=linux-x86_64
+BOOST_PYTHON_LIB=boost_python-mt-py27
+PVA_PY_CPPFLAGS=-DPVA_API_VERSION=430 -I/usr/include -I/usr/include/python2.7
+PVA_PY_LDFLAGS=-L/usr/lib -L/usr/lib -lpython2.7
