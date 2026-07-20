@@ -33,7 +33,7 @@ class DSL :
 
 {
 public:
-    POINTER_DEFINITIONS(DSL)
+    POINTER_DEFINITIONS(DSL);
     /**
      * Called by service layer to access the database.
      * @param pvArgument The argument which must follow the argument standard
@@ -41,7 +41,7 @@ public:
      * @return An NTTable which has the results.
      */
     virtual epics::pvData::PVStructure::shared_pointer request(
-        epics::pvData::String function,
+        const std::string& function,
         int num,
         epics::pvData::StringArray const &names,
         epics::pvData::StringArray const &values) = 0;
@@ -49,5 +49,4 @@ public:
 
 }}
 #endif  /* DSL_H */
-
 

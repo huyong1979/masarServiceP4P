@@ -1,7 +1,7 @@
 TOP = ../..
 include $(TOP)/configure/CONFIG
 
-USR_INCLUDES += -I${PYTHON_BASE}/include/${PYTHON}
+USR_INCLUDES += -I${PYTHON_BASE}/include/python3.14
 
 CLIENT = $(TOP)/src/client/
 
@@ -29,4 +29,3 @@ gather_LIBS += pvAccess pvData ca Com
 #masar_LIBS += $(EPICS_BASE_HOST_LIBS)
 
 include $(TOP)/configure/RULES
-

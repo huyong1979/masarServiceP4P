@@ -94,9 +94,9 @@ static PyObject * _str(PyObject *willBeNull, PyObject *args)
     }
     AlarmPvt *pvt = static_cast<AlarmPvt *>(pvoid);
     char buffer[256];
-    String message = pvt->alarm.getMessage();
-    String severity = (*AlarmSeverityFunc::getSeverityNames())[pvt->alarm.getSeverity()];
-    String status = (*AlarmStatusFunc::getStatusNames())[pvt->alarm.getStatus()];
+    std::string message = pvt->alarm.getMessage();
+    std::string severity = (*AlarmSeverityFunc::getSeverityNames())[pvt->alarm.getSeverity()];
+    std::string status = (*AlarmStatusFunc::getStatusNames())[pvt->alarm.getStatus()];
 
     sprintf(buffer,"message %s severity %s status %s",
         message.c_str(),severity.c_str(),status.c_str());
@@ -184,7 +184,7 @@ static PyObject * _getSeverity(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     AlarmPvt *pvt = static_cast<AlarmPvt *>(pvoid);
-    String severity = (*AlarmSeverityFunc::getSeverityNames())[pvt->alarm.getSeverity()];
+    std::string severity = (*AlarmSeverityFunc::getSeverityNames())[pvt->alarm.getSeverity()];
     return Py_BuildValue("s",severity.c_str());
 }
 
@@ -210,7 +210,7 @@ static PyObject * _setSeverity(PyObject *willBeNull, PyObject *args)
     size_t nchoices = choiceArrayPtr.get()->size();
     AlarmPvt *pvt = static_cast<AlarmPvt *>(pvoid);
     for(size_t i=0;i<nchoices; i++) {
-        String choice = (*choiceArrayPtr)[i];
+        std::string choice = (*choiceArrayPtr)[i];
         if(choice.compare(buffer)==0) {
             pvt->alarm.setSeverity(AlarmSeverityFunc::getSeverity(i));
             Py_INCREF(Py_None);
@@ -238,7 +238,7 @@ static PyObject * _getStatus(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     AlarmPvt *pvt = static_cast<AlarmPvt *>(pvoid);
-    String severity = (*AlarmStatusFunc::getStatusNames())[pvt->alarm.getStatus()];
+    std::string severity = (*AlarmStatusFunc::getStatusNames())[pvt->alarm.getStatus()];
     return Py_BuildValue("s",severity.c_str());
 }
 
@@ -264,7 +264,7 @@ static PyObject * _setStatus(PyObject *willBeNull, PyObject *args)
     size_t nchoices = choiceArrayPtr.get()->size();
     AlarmPvt *pvt = static_cast<AlarmPvt *>(pvoid);
     for(size_t i=0;i<nchoices; i++) {
-        String choice = (*choiceArrayPtr)[i];
+        std::string choice = (*choiceArrayPtr)[i];
         if(choice.compare(buffer)==0) {
             pvt->alarm.setStatus(AlarmStatusFunc::getStatus(i));
             Py_INCREF(Py_None);
@@ -365,11 +365,17 @@ static PyMethodDef methods[] = {
     {NULL,NULL,0,NULL}
 };
 
-PyMODINIT_FUNC initalarmPy(void)
+static struct PyModuleDef alarmpy_module = {
+    PyModuleDef_HEAD_INIT,
+    "alarmPy",
+    NULL,
+    -1,
+    methods
+};
+
+PyMODINIT_FUNC PyInit_alarmPy(void)
 {
-    PyObject * m = Py_InitModule("alarmPy",methods);
-    if(m==NULL) printf("initalarmPy failed\n");
+    return PyModule_Create(&alarmpy_module);
 }
 
 }}
-

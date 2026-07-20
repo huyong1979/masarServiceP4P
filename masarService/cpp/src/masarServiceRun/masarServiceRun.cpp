@@ -77,7 +77,7 @@ int main(int argc,char *argv[])
     RPCServer::shared_pointer rpcServer(new RPCServer());
     MasarService::shared_pointer service(MasarService::shared_pointer(new MasarService()));
     rpcServer->registerService(name, service);
-    rpcServer->printInfo();
+    rpcServer->getServer()->printInfo();
 
     cout << "===Starting channel RPC server: " << name << endl;
     cout << "===Use CTRl-D or exit() command to stop server." << endl;

@@ -1,0 +1,29 @@
+yhu@box64-1:~/eclipse-64/workspace/masar/python/masarclient/ui$ pyuic4 -o ui_masar.py ui_masar.ui
+
+awk '{print $1}' SR_All_SCR_20140421.cfg > SR_All_SCR_20140421.txt
+
+yhu@box64-1:~/eclipse-64/workspace/masar$ diff -ur python/masarclient/ui/ /epics/op/apps/masar/python/masarclient/ui
+
+
+
+ioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ caget SR:C28-MG{PS:CH2A}I:Sp1-SP SR:C28-MG{PS:CH2A}I:Ps1DCCT1-I
+SR:C28-MG{PS:CH2A}I:Sp1-SP     -4.22981
+SR:C28-MG{PS:CH2A}I:Ps1DCCT1-I -4.23109
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ caget SR:C28-MG{PS:CH2A}I:Sp2-SP SR:C28-MG{PS:CH2A}I:Ps1DCCT2-I
+SR:C28-MG{PS:CH2A}I:Sp2-SP     1.70624
+SR:C28-MG{PS:CH2A}I:Ps1DCCT2-I -4.23109
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ caget SR:C28-MG{PS:CH2A}I:Sp2-SP SR:C28-MG{PS:CH2A}I:Ps2DCCT2-I
+SR:C28-MG{PS:CH2A}I:Sp2-SP     1.70624
+SR:C28-MG{PS:CH2A}I:Ps2DCCT2-I 1.70171
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ caget SR:C28-MG{PS:CH2A}I:Sp2-SP SR:C28-MG{PS:CH2A}I:Ps2DCCT1-I
+SR:C28-MG{PS:CH2A}I:Sp2-SP     1.70624
+SR:C28-MG{PS:CH2A}I:Ps2DCCT1-I 1.70415
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+yhu@biioc-br-rge:~/eclipse/workspace/masar/python/masarclient/ui/configure$ 
+

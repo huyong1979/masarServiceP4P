@@ -13,8 +13,10 @@
 
 #include <pv/nt.h>
 #include <stdexcept>
+#include <sstream>
 
 using namespace epics::pvData;
+using namespace epics::nt;
 
 namespace epics { namespace pvAccess {
 
@@ -65,26 +67,37 @@ static PyObject * _init(PyObject *willbenull, PyObject *args)
         return NULL;
     }
     Py_ssize_t n = PyDict_Size(dict);
-    String names[n];
-    String values[n];
+    PVStringArray::svector names(n);
+    PVStringArray::svector values(n);
     PyObject *pkey, *pvalue;
     Py_ssize_t pos = 0;
     for(Py_ssize_t i=0; i< n; i++) {
         PyDict_Next(dict,&pos, &pkey, &pvalue);
-        char *key = PyString_AS_STRING(pkey);
-        char *val = PyString_AS_STRING(pvalue);
-        names[i] = String(key);
-        values[i] = String(val);
+        const char *key = PyUnicode_AsUTF8(pkey);
+        const char *val = PyUnicode_AsUTF8(pvalue);
+        if(!key || !val) {
+            PyErr_SetString(PyExc_SyntaxError,
+               "dictionary key/value must be strings");
+            return NULL;
+        }
+        names[i] = key;
+        values[i] = val;
     }
 
-    NTNameValuePtr ntnamevalue = NTNameValue::create(true,false,false);
+    FieldCreatePtr fieldCreate = getFieldCreate();
+    NTNameValuePtr ntnamevalue = NTNameValue::createBuilder()
+        ->value(pvString)
+        ->add("function", fieldCreate->createScalar(pvString))
+        ->create();
     PVStructurePtr pv = ntnamevalue->getPVStructure();
-    PVStringPtr pvfunction = ntnamevalue->getFunction();
-    PVStringArrayPtr pvnames = ntnamevalue->getNames();
-    PVStringArrayPtr pvvalues = ntnamevalue->getValues();
-    pvnames->put(0,n,names,0);
-    pvvalues->put(0,n,values,0);
-    pvfunction->put(function);
+    PVStringPtr pvfunction = pv->getSubField<PVString>("function");
+    if(pvfunction) {
+        pvfunction->put(function);
+    }
+    PVStringArrayPtr pvnames = ntnamevalue->getName();
+    PVStringArrayPtr pvvalues = ntnamevalue->getValue<PVStringArray>();
+    pvnames->replace(freeze(names));
+    pvvalues->replace(freeze(values));
     NTNameValuePvt *pvt = new NTNameValuePvt(ntnamevalue,pv);
     return PyCapsule_New(pvt,"ntnameValuePvt",0);
 }
@@ -130,9 +143,10 @@ static PyObject * _str(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     NTNameValuePvt *pvt = static_cast<NTNameValuePvt *>(pvoid);
-    String buffer;
-    pvt->ntnameValue->getPVStructure()->toString(&buffer);
-    return Py_BuildValue("s",buffer.c_str());
+    std::ostringstream buffer;
+    buffer << *pvt->ntnameValue->getPVStructure();
+    std::string out = buffer.str();
+    return Py_BuildValue("s",out.c_str());
 
 }
 
@@ -235,10 +249,9 @@ static PyObject * _getNames(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     NTNameValuePvt *pvt = static_cast<NTNameValuePvt *>(pvoid);
-    PVStringArrayPtr pvNames = pvt->ntnameValue->getNames();
-    StringArrayData stringArrayData;
-    int num = pvNames->get(0,pvNames->getLength(), stringArrayData);
-    StringArray & data = stringArrayData.data;
+    PVStringArrayPtr pvNames = pvt->ntnameValue->getName();
+    PVStringArray::const_svector data = pvNames->view();
+    int num = data.size();
     PyObject *result = PyTuple_New(num);
     for(int i=0; i<num; i++) {
         PyObject *elem = Py_BuildValue("s",data[i].c_str());
@@ -264,10 +277,9 @@ static PyObject * _getValues(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     NTNameValuePvt *pvt = static_cast<NTNameValuePvt *>(pvoid);
-    PVStringArrayPtr pvValues = pvt->ntnameValue->getValues();
-    StringArrayData stringArrayData;
-    int num = pvValues->get(0,pvValues->getLength(), stringArrayData);
-    StringArray & data = stringArrayData.data;
+    PVStringArrayPtr pvValues = pvt->ntnameValue->getValue<PVStringArray>();
+    PVStringArray::const_svector data = pvValues->view();
+    int num = data.size();
     PyObject *result = PyTuple_New(num);
     for(int i=0; i<num; i++) {
         PyObject *elem = Py_BuildValue("s",data[i].c_str());
@@ -299,11 +311,17 @@ static PyMethodDef methods[] = {
     {NULL,NULL,0,NULL}
 };
 
-PyMODINIT_FUNC initntnameValuePy(void)
+static struct PyModuleDef ntnamevaluepy_module = {
+    PyModuleDef_HEAD_INIT,
+    "ntnameValuePy",
+    NULL,
+    -1,
+    methods
+};
+
+PyMODINIT_FUNC PyInit_ntnameValuePy(void)
 {
-    PyObject * m = Py_InitModule("ntnameValuePy",methods);
-    if(m==NULL) printf("initntnameValuePy failed\n");
+    return PyModule_Create(&ntnamevaluepy_module);
 }
 
 }}
-

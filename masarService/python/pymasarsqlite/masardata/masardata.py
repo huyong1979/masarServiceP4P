@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import cPickle as pickle
+import pickle
 import sqlite3
 
 from pymasarsqlite.utils import checkConnection
@@ -65,7 +65,7 @@ def saveSnapshot(conn, data, servicename=None, configname=None, comment=None,app
     masarid = None
     try:
         masarid = __saveMasarData(conn, eventid, data)
-    except sqlite3.Error, e:
+    except sqlite3.Error as e:
         print ('Error %s' %e.args[0])
         raise
     return eventid, masarid
@@ -270,7 +270,10 @@ def __retrieveMasarData(conn, eventid):
         for i in range(len(data)):
             res = data[i]
             if res[13] != None:
-                result = pickle.loads(str(res[13]))
+                payload = res[13]
+                if isinstance(payload, memoryview):
+                    payload = payload.tobytes()
+                result = pickle.loads(payload)
             else:
                 result = []
             data[i]=data[i][:13]+ (result[:],)

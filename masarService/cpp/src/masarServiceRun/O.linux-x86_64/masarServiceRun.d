@@ -1,69 +1,56 @@
 masarServiceRun.o: ../masarServiceRun.cpp \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/cantProceed.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/shareLib.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsStdio.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/compilerDependencies.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsMutex.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsAssert.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/os/Linux/osdMutex.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsEvent.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/os/Linux/osdEvent.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsThread.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsEvent.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsMutex.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/os/Linux/osdThread.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/shareLib.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsExit.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsExport.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/iocsh.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/pvIntrospect.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/noDefaultMethods.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/pvType.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/sharedPtr.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/localStaticLock.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/lock.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/byteBuffer.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsEndian.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/os/Linux/osdWireConfig.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/epicsException.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/serialize.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/pvData.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/requester.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/rpcServer.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/pvAccess.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/status.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/destroyable.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/monitor.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/bitSet.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/pvaVersion.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/rpcService.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/serverContext.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/remote.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/pvaConstants.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/configuration.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/envDefs.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/timer.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/thread.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/timeStamp.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsTime.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/epicsTypes.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/os/Linux/osdTime.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/event.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/osiSock.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/os/Linux/osdSock.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/ellLib.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/beaconServerStatusProvider.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/blockingUDP.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/inetAddressUtil.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/blockingTCP.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/transportRegistry.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/introspectionRegistry.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/serializeHelper.h \
- /epics/op/apps/masar/epicsV4/pvDataCPP/include/pv/standardField.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/namedLockPattern.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/referenceCountingLock.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/beaconEmitter.h \
- /epics/op/apps/masar/epicsV4/pvAccessCPP/include/pv/logger.h \
- /epics/op/apps/masar/epicsV3/base-3.14.12.3/include/errlog.h \
- ../../../include/pv/masarService.h ../../../include/pv/dslPY.h \
- ../../../include/pv/dsl.h
+ /usr/lib/epics/include/cantProceed.h \
+ /usr/lib/epics/include/compilerDependencies.h \
+ /usr/lib/epics/include/compiler/gcc/compilerSpecific.h \
+ /usr/lib/epics/include/libComAPI.h /usr/lib/epics/include/epicsStdio.h \
+ /usr/lib/epics/include/epicsTempFile.h \
+ /usr/lib/epics/include/epicsMutex.h /usr/lib/epics/include/epicsAssert.h \
+ /usr/lib/epics/include/epicsGuard.h \
+ /usr/lib/epics/include/os/Linux/osdMutex.h \
+ /usr/lib/epics/include/epicsEvent.h \
+ /usr/lib/epics/include/os/Linux/osdEvent.h \
+ /usr/lib/epics/include/epicsThread.h /usr/lib/epics/include/epicsEvent.h \
+ /usr/lib/epics/include/epicsMutex.h \
+ /usr/lib/epics/include/os/Linux/osdThread.h \
+ /usr/lib/epics/include/libComAPI.h /usr/lib/epics/include/ellLib.h \
+ /usr/lib/epics/include/epicsExit.h /usr/lib/epics/include/epicsExport.h \
+ /usr/lib/epics/include/shareLib.h /usr/lib/epics/include/iocsh.h \
+ /usr/lib/epics/include/pv/pvIntrospect.h \
+ /usr/lib/epics/include/epicsAssert.h /usr/lib/epics/include/pv/lock.h \
+ /usr/lib/epics/include/pv/noDefaultMethods.h \
+ /usr/lib/epics/include/pv/pvType.h /usr/lib/epics/include/pv/sharedPtr.h \
+ /usr/lib/epics/include/pv/byteBuffer.h \
+ /usr/lib/epics/include/epicsEndian.h \
+ /usr/lib/epics/include/os/Linux/osdWireConfig.h \
+ /usr/lib/epics/include/compilerDependencies.h \
+ /usr/lib/epics/include/pv/templateMeta.h \
+ /usr/lib/epics/include/pv/epicsException.h \
+ /usr/lib/epics/include/pv/serialize.h \
+ /usr/lib/epics/include/epicsTypes.h \
+ /usr/lib/epics/include/pv/pvdVersion.h \
+ /usr/lib/epics/include/epicsVersion.h \
+ /usr/lib/epics/include/pv/pvdVersionNum.h \
+ /usr/lib/epics/include/pv/pvData.h /usr/lib/epics/include/pv/typeCast.h \
+ /usr/lib/epics/include/epicsConvert.h \
+ /usr/lib/epics/include/pv/anyscalar.h \
+ /usr/lib/epics/include/pv/sharedVector.h \
+ /usr/lib/epics/include/pv/rpcServer.h \
+ /usr/lib/epics/include/pv/pvAccess.h \
+ /usr/lib/epics/include/pv/createRequest.h \
+ /usr/lib/epics/include/pv/bitSet.h /usr/lib/epics/include/pv/status.h \
+ /usr/lib/epics/include/pv/pvaVersion.h \
+ /usr/lib/epics/include/pv/pvaVersionNum.h \
+ /usr/lib/epics/include/pv/destroyable.h \
+ /usr/lib/epics/include/pv/monitor.h \
+ /usr/lib/epics/include/pv/requester.h \
+ /usr/lib/epics/include/pv/rpcService.h \
+ /usr/lib/epics/include/pv/serverContext.h \
+ /usr/lib/epics/include/epicsTime.h /usr/lib/epics/include/epicsTypes.h \
+ /usr/lib/epics/include/os/Linux/osdTime.h \
+ /usr/lib/epics/include/errMdef.h /usr/lib/epics/include/pv/pvaDefs.h \
+ /usr/lib/epics/include/epicsGuard.h \
+ /usr/lib/epics/include/pv/beaconServerStatusProvider.h \
+ /usr/lib/epics/include/pv/pvaConstants.h \
+ /usr/lib/epics/include/pv/configuration.h \
+ /usr/lib/epics/include/envDefs.h ../../../include/pv/masarService.h \
+ ../../../include/pv/dslPY.h ../../../include/pv/dsl.h

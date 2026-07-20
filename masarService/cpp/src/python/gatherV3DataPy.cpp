@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 using namespace epics::pvData;
+using namespace epics::nt;
 
 namespace epics { namespace pvAccess {
 
@@ -64,13 +65,13 @@ static PyObject * _init(PyObject *willBeNull, PyObject *args)
                "a channelName is null");
             return NULL;
         }
-        char *sval =  PyString_AsString(pyobject);
+        const char *sval =  PyUnicode_AsUTF8(pyobject);
         if(sval==NULL) {
             PyErr_SetString(PyExc_SyntaxError,
                "a channelName is not a string");
             return NULL;
         }
-        names[i] = String(sval);
+        names[i] = std::string(sval);
     }
     GatherV3DataPyPvt *pvt = new GatherV3DataPyPvt(names,num);
     return PyCapsule_New(pvt,"gatherV3DataPy",0);
@@ -229,7 +230,7 @@ static PyObject * _getMessage(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     GatherV3DataPyPvt *pvt = static_cast<GatherV3DataPyPvt *>(pvoid);
-    String message = pvt->gatherV3Data->getMessage();
+    std::string message = pvt->gatherV3Data->getMessage();
     PyObject *pyObject = Py_BuildValue("s",message.c_str());
     return pyObject;
 }
@@ -274,10 +275,17 @@ static PyMethodDef methods[] = {
     {NULL,NULL,0,NULL}
 };
 
-PyMODINIT_FUNC initgatherV3DataPy(void)
+static struct PyModuleDef gatherv3datapy_module = {
+    PyModuleDef_HEAD_INIT,
+    "gatherV3DataPy",
+    NULL,
+    -1,
+    methods
+};
+
+PyMODINIT_FUNC PyInit_gatherV3DataPy(void)
 {
-    PyObject * m = Py_InitModule("gatherV3DataPy",methods);
-    if(m==NULL) printf("initgatherV3DataPy failed\n");
+    return PyModule_Create(&gatherv3datapy_module);
 }
 
 }}

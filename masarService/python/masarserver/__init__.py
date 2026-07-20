@@ -4,7 +4,7 @@ This Python module is developed to support MASAR database, which is using SQLite
 
 __version__ = '1.0.0'
 
-import dslPY
+from . import dslPY
 
 __all__ = ['version']
 

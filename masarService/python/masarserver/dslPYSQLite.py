@@ -199,7 +199,7 @@ class DSL(object):
         conn = pymasar.utils.connect()
         result = pymasar.service.retrieveServiceConfigPVs(conn, config, servicename=service)
         pymasar.utils.close(conn)
-        return result
+        return list(result)
     
     def updateSnapshotEvent(self, params):
         #key = ['eventid', 'user', 'desc', 'configname']

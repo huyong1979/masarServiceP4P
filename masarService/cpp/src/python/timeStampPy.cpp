@@ -134,7 +134,7 @@ static PyObject * _setSeconds(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     TimeStampPvt *pvt = static_cast<TimeStampPvt *>(pvoid);
-    int32 nano = pvt->timeStamp.getNanoSeconds();
+    int32 nano = pvt->timeStamp.getNanoseconds();
     pvt->timeStamp.put(value,nano);
     Py_INCREF(Py_None);
     return Py_None;
@@ -157,7 +157,7 @@ static PyObject * _getNano(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     TimeStampPvt *pvt = static_cast<TimeStampPvt *>(pvoid);
-    return Py_BuildValue("i",pvt->timeStamp.getNanoSeconds());
+    return Py_BuildValue("i",pvt->timeStamp.getNanoseconds());
 }
 
 static PyObject * _setNano(PyObject *willBeNull, PyObject *args)
@@ -226,11 +226,17 @@ static PyMethodDef methods[] = {
     {NULL,NULL,0,NULL}
 };
 
-PyMODINIT_FUNC inittimeStampPy(void)
+static struct PyModuleDef timestamppy_module = {
+    PyModuleDef_HEAD_INIT,
+    "timeStampPy",
+    NULL,
+    -1,
+    methods
+};
+
+PyMODINIT_FUNC PyInit_timeStampPy(void)
 {
-    PyObject * m = Py_InitModule("timeStampPy",methods);
-    if(m==NULL) printf("inittimeStampPy failed\n");
+    return PyModule_Create(&timestamppy_module);
 }
 
 }}
-

@@ -1,3 +1,0 @@
-OS-class: Linux
-Target-arch: linux-x86_64-debug
-Tests: testAtomicBoolean.t testHexDump.t testInetAddressUtils.t

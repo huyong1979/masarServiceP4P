@@ -14,11 +14,11 @@ Created on Oct 23, 2011
 @author: shengb
 """
 
-from channelRPC import ChannelRPC
-from ntnameValue import NTNameValue
-from nttable import NTTable
-from alarm import Alarm
-from timeStamp import TimeStamp
+from .channelRPC import ChannelRPC
+from .ntnameValue import NTNameValue
+from .nttable import NTTable
+from .alarm import Alarm
+from .timeStamp import TimeStamp
 
 class client():
     def __init__(self, channelname = 'masarService'):
@@ -40,12 +40,12 @@ class client():
         channelRPC = ChannelRPC(self.channelname,"record[process=true]field()")
         channelRPC.issueConnect()
         if not channelRPC.waitConnect(1.0) :
-            print channelRPC.getMessage()
+            print(channelRPC.getMessage())
             raise Exception(channelRPC.getMessage())
         channelRPC.issueRequest(ntnv.getNTNameValue(),False)
         result = channelRPC.waitRequest()
         if(result==None) :
-            print channelRPC.getMessage()
+            print(channelRPC.getMessage())
             raise Exception(channelRPC.getMessage())
         nttable = NTTable(result)
         nttable.getAlarm(alarm.getAlarmPy())    
@@ -54,8 +54,14 @@ class client():
     
     def __isFault(self, nttable):        
         label = nttable.getLabel()
-        if label[0] == 'status' and not nttable.getValue(0)[0]:
+        if not label:
             return True
+        if label[0] == 'status':
+            status = nttable.getValue(0)
+            if len(status) == 0:
+                return True
+            if not status[0]:
+                return True
         return False
 
     def retrieveSystemList(self):

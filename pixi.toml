@@ -13,3 +13,4 @@ default = { solve-group = "default" }
 python = ">=3.14,<3.15"
 pyside6 = ">=6.10,<7"
 pip = ">=24"
+matplotlib = ">=3.11.0,<4"

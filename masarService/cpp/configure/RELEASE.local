@@ -1,10 +1,3 @@
-EPICS_BASE=/epics/op/apps/masar/epicsV3/base-3.14.12.3
+EPICS_BASE=/usr/lib/epics
 
-PVDATA=/epics/op/apps/masar/epicsV4/pvDataCPP
-PVCOMMON=/epics/op/apps/masar/epicsV4/pvCommonCPP
-PVACCESS=/epics/op/apps/masar/epicsV4/pvAccessCPP
-NTYPES=/epics/op/apps/masar/epicsV4/normativeTypesCPP
-
-PYTHON=python2.7
-PYTHON_BASE=/usr
-$(PYTHON)_DIR = $(PYTHON_BASE)/lib/$(PYTHON)/config
+PYTHON_BASE=/epics/op/apps/masarPy3/.pixi/envs/default

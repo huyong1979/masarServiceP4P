@@ -1,7 +1,7 @@
 TOP = ../..
 include $(TOP)/configure/CONFIG
 
-USR_INCLUDES += -I${PYTHON_BASE}/include/${PYTHON}
+USR_INCLUDES += -I${PYTHON_BASE}/include/python3.14
 
 INC += dsl.h
 
@@ -17,11 +17,9 @@ SRC_DIRS += $(SERVER)/dslPY
 INC += dslPY.h
 LIBSRCS += dslPY.cpp
 
-masarService_LIBS += gather nt pvAccess pvData Com
-masarService_LIBS += $(PYTHON)
-
-
-$(PYTHON)_DIR = $(PYTHON_BASE)/lib/$(PYTHON)/config
+masarServer_LIBS += gather nt pvAccess pvData Com
+USR_LDFLAGS += -L${PYTHON_BASE}/lib
+masarServer_SYS_LIBS += python3.14
+masarServer_SYS_LIBS += dl
 
 include $(TOP)/configure/RULES
-

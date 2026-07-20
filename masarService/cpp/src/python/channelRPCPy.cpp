@@ -18,6 +18,7 @@
 #include <pv/rpcClient.h>
 #include <pv/pvAccess.h>
 #include <pv/clientFactory.h>
+#include <pv/createRequest.h>
 
 using namespace epics::pvData;
 
@@ -31,12 +32,12 @@ public:
         PVStructure::shared_pointer pvRequest);
     ~ChannelRPCPyPvt();
     void destroy();
-    RPCClientPtr const & getChannelRPC(){
+    RPCClient::shared_pointer const & getChannelRPC(){
         return channelRPC;
     }
     PVStructure::shared_pointer pvResponse;
 private:
-    RPCClientPtr channelRPC;
+    RPCClient::shared_pointer channelRPC;
 };
 
 ChannelRPCPyPvt::ChannelRPCPyPvt(
@@ -70,12 +71,12 @@ class RequesterImpl : public Requester,
 {
 public:
 
-    virtual String getRequesterName()
+    virtual std::string getRequesterName()
     {
         return "RequesterImpl";
     };
 
-    virtual void message(String const & message,MessageType messageType)
+    virtual void message(std::string const & message,MessageType messageType)
     {
         std::cout << "[" << getRequesterName() << "] message(" << message << ", " << getMessageTypeName(messageType) << ")" << std::endl;
     }
@@ -109,9 +110,12 @@ static PyObject * _init2(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     Requester::shared_pointer requester(new RequesterImpl());
-//    CreateRequest::shared_pointer createRequest = getCreateRequest();
-    PVStructure::shared_pointer pvRequest =
-         getCreateRequest()->createRequest(request, requester);
+    epics::pvData::CreateRequest::shared_pointer createRequest = epics::pvData::CreateRequest::create();
+    PVStructure::shared_pointer pvRequest = createRequest->createRequest(request);
+    if(!pvRequest) {
+        PyErr_SetString(PyExc_RuntimeError, createRequest->getMessage().c_str());
+        return NULL;
+    }
 
     ChannelRPCPyPvt *pvt = new ChannelRPCPyPvt(serverName,pvRequest);
     PyObject *pyObject = PyCapsule_New(pvt,"channelRPCPyPvt",0);
@@ -161,7 +165,7 @@ static PyObject * _connect(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
+    RPCClient::shared_pointer const & channelRPC = pvt->getChannelRPC();
     bool result = false;
     Py_BEGIN_ALLOW_THREADS
         result = channelRPC->connect(timeout);
@@ -191,7 +195,7 @@ static PyObject * _issueConnect(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
+    RPCClient::shared_pointer const & channelRPC = pvt->getChannelRPC();
     Py_BEGIN_ALLOW_THREADS
         channelRPC->issueConnect();
     Py_END_ALLOW_THREADS
@@ -218,7 +222,7 @@ static PyObject * _waitConnect(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
+    RPCClient::shared_pointer const & channelRPC = pvt->getChannelRPC();
     bool result = false;
     Py_BEGIN_ALLOW_THREADS
         result = channelRPC->waitConnect(timeout);
@@ -234,7 +238,7 @@ static PyObject * _request(PyObject *willBeNull, PyObject *args)
 {
     PyObject *pcapsule = 0;
     PyObject *pargument = 0;
-    int *lastRequest = 0;
+    int lastRequest = 0;
     if(!PyArg_ParseTuple(args,"OOi:channelRPCPy",
         &pcapsule,
         &pargument,
@@ -251,13 +255,13 @@ static PyObject * _request(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
+    RPCClient::shared_pointer const & channelRPC = pvt->getChannelRPC();
     pvoid = PyCapsule_GetPointer(pargument,"pvStructure");
     PVStructure::shared_pointer *pvStructure =
         static_cast<PVStructure::shared_pointer *>(pvoid);
-    bool last = (lastRequest==0) ? false : true ;
+    bool last = (lastRequest!=0);
     Py_BEGIN_ALLOW_THREADS
-        pvt->pvResponse = channelRPC->request(*pvStructure,last);
+        pvt->pvResponse = channelRPC->request(*pvStructure,RPCCLIENT_DEFAULT_TIMEOUT,last);
     Py_END_ALLOW_THREADS
     if(pvt->pvResponse.get()==0) {
         Py_INCREF(Py_None);
@@ -271,7 +275,7 @@ static PyObject * _issueRequest(PyObject *willBeNull, PyObject *args)
 {
     PyObject *pcapsule = 0;
     PyObject *pargument = 0;
-    int *lastRequest = 0;
+    int lastRequest = 0;
     if(!PyArg_ParseTuple(args,"OOi:channelRPCPy",
         &pcapsule,
         &pargument,
@@ -288,11 +292,11 @@ static PyObject * _issueRequest(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
+    RPCClient::shared_pointer const & channelRPC = pvt->getChannelRPC();
     pvoid = PyCapsule_GetPointer(pargument,"pvStructure");
     PVStructure::shared_pointer *pvStructure =
         static_cast<PVStructure::shared_pointer *>(pvoid);
-    bool last = (lastRequest==0) ? false : true ;
+    bool last = (lastRequest!=0);
     Py_BEGIN_ALLOW_THREADS
         channelRPC->issueRequest(*pvStructure,last);
     Py_END_ALLOW_THREADS
@@ -317,9 +321,9 @@ static PyObject * _waitRequest(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
+    RPCClient::shared_pointer const & channelRPC = pvt->getChannelRPC();
     Py_BEGIN_ALLOW_THREADS
-        pvt->pvResponse = channelRPC->waitRequest();
+        pvt->pvResponse = channelRPC->waitResponse();
     Py_END_ALLOW_THREADS
     if(pvt->pvResponse.get()==0) {
         //ExceptionMixin ss(__FILE__, __LINE__);
@@ -349,11 +353,7 @@ static PyObject * _getMessage(PyObject *willBeNull, PyObject *args)
         return NULL;
     }
     ChannelRPCPyPvt *pvt = static_cast<ChannelRPCPyPvt *>(pvoid);
-    RPCClientPtr const & channelRPC = pvt->getChannelRPC();
-    String message;
-    Py_BEGIN_ALLOW_THREADS
-        message = channelRPC->getMessage();
-    Py_END_ALLOW_THREADS
+    std::string message;
     PyObject *pyObject = Py_BuildValue("s",message.c_str());
     return pyObject;
 }
@@ -396,10 +396,17 @@ static PyMethodDef methods[] = {
     {NULL,NULL,0,NULL}
 };
 
-PyMODINIT_FUNC initchannelRPCPy(void)
+static struct PyModuleDef channelrpcpy_module = {
+    PyModuleDef_HEAD_INIT,
+    "channelRPCPy",
+    NULL,
+    -1,
+    methods
+};
+
+PyMODINIT_FUNC PyInit_channelRPCPy(void)
 {
-    PyObject * m = Py_InitModule("channelRPCPy",methods);
-    if(m==NULL) printf("initchannelRPCPy failed\n");
+    return PyModule_Create(&channelrpcpy_module);
 }
 
 }}
