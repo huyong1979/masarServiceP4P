@@ -2,3 +2,10 @@ NOTUSEDDIRS/
 *.db
 __pycache__/
 *.pyc
+
+# EPICS cpp build outputs (should not be tracked)
+masarService/cpp/bin/
+masarService/cpp/lib/
+masarService/cpp/include/pv/
+masarService/cpp/configure/O.*/
+masarService/cpp/src/**/O.*/
