@@ -10,7 +10,6 @@ if [[ ! -x "${PIXI_ENV}/bin/python" ]]; then
     exit 1
 fi
 
-export MASAR_SQLITE_DB="${ROOT_DIR}/masar.db"
 export PYTHONPATH="${ROOT_DIR}/python:${ROOT_DIR}/cpp/src/python:${PYTHONPATH:-}"
 export LD_LIBRARY_PATH="${PIXI_ENV}/lib:${ROOT_DIR}/cpp/lib/linux-x86_64:${LD_LIBRARY_PATH:-}"
 export QT_API="pyside6"
