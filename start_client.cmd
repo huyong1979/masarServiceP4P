@@ -10,9 +10,19 @@ if [[ ! -x "${PIXI_ENV}/bin/python" ]]; then
     exit 1
 fi
 
-export PYTHONPATH="${ROOT_DIR}/python:${ROOT_DIR}/cpp/src/python:${PYTHONPATH:-}"
+export PYTHONPATH="/epics/op/apps/pyOlog:${ROOT_DIR}/python:${ROOT_DIR}/cpp/src/python:${PYTHONPATH:-}"
 export LD_LIBRARY_PATH="${PIXI_ENV}/lib:${ROOT_DIR}/cpp/lib/linux-x86_64:${LD_LIBRARY_PATH:-}"
 export QT_API="pyside6"
+
+if [[ -f "/etc/fonts/fonts.conf" ]]; then
+    export FONTCONFIG_FILE="/etc/fonts/fonts.conf"
+fi
+if [[ -d "/etc/fonts" ]]; then
+    export FONTCONFIG_PATH="/etc/fonts"
+fi
+if [[ -f "/usr/share/X11/locale/en_US.UTF-8/Compose" ]]; then
+    export XCOMPOSEFILE="/usr/share/X11/locale/en_US.UTF-8/Compose"
+fi
 
 channel="test"
 if [[ $# -gt 0 ]]; then

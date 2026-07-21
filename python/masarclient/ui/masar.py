@@ -10,7 +10,7 @@ Created on Dec 1, 2011
 
 #from __future__ import unicode_literals
 
-import os, sys, time, datetime, re, fnmatch, importlib, traceback, platform, errno
+import os, sys, time, datetime, re, fnmatch, importlib, traceback, platform, errno, configparser
 
 from PySide6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QTableWidgetItem, QTableWidget,
                         QFileDialog, QTabWidget,
@@ -411,17 +411,17 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
             return True # no authentication if no file for masar config
         
         if masarConfigDict['LDAP']['existing'] == 'True':
+            ignore_password = str(
+                masarConfigDict['LDAP'].get(
+                    'ignorepasswd',
+                    masarConfigDict['LDAP'].get('ignorepw', 'False')
+                )
+            ) == 'True'
+
             try:
                 import ldap
             except ModuleNotFoundError:
-                if masarConfigDict['LDAP']['ignorepasswd'] == 'True':
-                    return True
-                QMessageBox.warning(
-                    self,
-                    'Warning',
-                    'LDAP authentication requested, but python-ldap is not installed.'
-                )
-                return False
+                ldap = None
             from .authendlg import AuthenDlg
 
             userID = self.userID
@@ -445,6 +445,16 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
             dlg.exec()
             if dlg.isAccepted:
                 self.passWd = dlg.result()      
+                if ldap is None:
+                    if ignore_password and 8 <= len(self.passWd) <= 32:
+                        return True
+                    QMessageBox.warning(
+                        self,
+                        'Warning',
+                        'LDAP authentication requested, but python-ldap is not installed.'
+                    )
+                    return False
+
                 #user = userID[:-1]#remove trailing '\n' 
                 ldap.protocol_version = 3
                 ldap.set_option(ldap.OPT_REFERRALS, 0)
@@ -458,7 +468,7 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
                     lp.simple_bind_s(username, self.passWd)
                     return True
                 except:
-                    if masarConfigDict['LDAP']['ignorepasswd'] == 'True':
+                    if ignore_password:
                         return True
                     
                     self.passWd = ""
@@ -471,6 +481,24 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
                 return False   
         
         return True#masarConfigDict['LDAP']['existing'] == 'False'
+
+    def _appendLocalMasarLog(self, logText, action='action'):
+        if not logText:
+            return
+        dirPath = os.path.dirname(os.path.abspath(__file__))
+        logFile = os.path.join(dirPath, 'masar.log')
+        try:
+            umask_original = os.umask(0)
+            fdesc = os.open(logFile, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o666)
+            os.umask(umask_original)
+            with os.fdopen(fdesc, 'a') as fd:
+                fd.write(
+                    str(self.userID) + ' from ' + str(platform.node()) + ' did ' + action + ' at %s:\n'
+                    % datetime.datetime.now()
+                )
+                fd.write(logText + "\n\n")
+        except:
+            pass
     
         
     def createLogEntry(self, logText, logbookName = None):        
@@ -483,6 +511,8 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
             try:    
                 #import requests
                 #print("requests version: %s"%requests.__version__) 
+                if not hasattr(configparser, 'SafeConfigParser'):
+                    configparser.SafeConfigParser = configparser.ConfigParser
                 from pyOlog import OlogClient, Tag, Logbook, LogEntry  
                 #if 'https_proxy' in os.environ.keys():
                     #print("unset https_proxy: %s"%(os.environ['https_proxy']))
@@ -798,6 +828,7 @@ with description: %s.\nComment: %s"%(self.previewId,self.previewConfName,comment
                         logText="Succeed to save a snapshot #%s to MASAR database using Conifg %s  \
 with description: %s"%(self.previewId, self.previewConfName, comment[1])
                     self.createLogEntry(logText)
+                    self._appendLocalMasarLog(logText, action='save')
                     self.saveMachineSnapshotButton.setEnabled(True)
                 else:
                     self.createLog4InvisibleSnapshot()
@@ -1814,24 +1845,10 @@ PS: these PVs are not restored because they are 'Not Restore' or temporarily dis
         
         self.createLogEntry(logText)
         
-        dirPath = os.path.dirname(os.path.abspath(__file__))
-        #keep a local log file logging restore actions    
-        try:
-            logFile = dirPath + '/masar.log'
-            #print(logFile)
-            if not os.path.isfile(logFile):
-                return
-            userID =  self.userID 
-            fd = open(logFile,'a')
-            fd.write(str(userID)+' from '+str(platform.node())+' did a restore at %s:\n'\
-                     %datetime.datetime.now())
-            fd.write(logText+"\n\n")
-            fd.close()     
-        except:
-            pass
-            #traceback.print_exc()  
+        self._appendLocalMasarLog(logText, action='restore')
             
         #compare readback & setpoint after restoring machine                     
+        dirPath = os.path.dirname(os.path.abspath(__file__))
         configFile = dirPath + '/configure/' + self.e2cDict[eid][2] + '.cfg'
         if not os.path.isfile(configFile):
             return
