@@ -1,7 +1,6 @@
 #!/usr/bin/env python33
 '''
-Created on Dec 1, 2011
-
+Originally created on Dec 1, 2011. Upgraded to PySide6 on July 21, 2026. 
 @Original author: shengb
 @co-author: Yong Hu (yhu@bnl.gov)
 '''
@@ -561,6 +560,8 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
         QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
         self.previewId = None
         self.previewConfName = None
+        if cav3.caget("arcapp-acc:MASAR-Cmd") == 0:
+            return
         
         eventIds = []
         configIds = []
@@ -1774,6 +1775,8 @@ It may take a while to restore the machine. Do you want to continue?"
                 if r_pvlist[i] not in no_restorepvs:
                     final_restorepv.append(r_pvlist[i])
                     final_restorepvval.append(r_data[i])
+            if cav3.caget("arcapp-acc:MASAR-Cmd") == 0:
+                return
             if len(final_restorepv) > 0:
                 results = cav3.caput(final_restorepv, final_restorepvval, wait=True, throw=False)
                 for i in range(len(results)):
