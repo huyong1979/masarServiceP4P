@@ -1,0 +1,3 @@
+EPICS_BASE=/usr/lib/epics
+
+PYTHON_BASE=/epics/op/apps/masarService/.pixi/envs/default
