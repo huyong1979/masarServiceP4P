@@ -30,7 +30,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 # Optional: pass remote server host/IP as 2nd arg.
-# Example: ./start_client.cmd test diagioc-spc.nsls2.bnl.gov
+# Example: ./start_client.cmd test diagioc-spc.nsls2.bnl.local
 server_addr="${MASAR_SERVER_ADDR:-}"
 if [[ $# -gt 1 ]]; then
     server_addr="$2"
@@ -38,7 +38,7 @@ fi
 if [[ -z "${server_addr}" ]]; then
     host_short="$(hostname -s 2>/dev/null || true)"
     if [[ "${host_short}" != "diagioc-spc" ]]; then
-        server_addr="diagioc-spc.nsls2.bnl.gov"
+        server_addr="diagioc-spc.nsls2.bnl.local"
     fi
 fi
 if [[ -n "${server_addr}" ]]; then
