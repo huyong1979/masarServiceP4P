@@ -29,6 +29,23 @@ if [[ $# -gt 0 ]]; then
     channel="$1"
 fi
 
+# Optional: pass remote server host/IP as 2nd arg.
+# Example: ./start_client.cmd test diagioc-spc.nsls2.bnl.gov
+server_addr="${MASAR_SERVER_ADDR:-}"
+if [[ $# -gt 1 ]]; then
+    server_addr="$2"
+fi
+if [[ -z "${server_addr}" ]]; then
+    host_short="$(hostname -s 2>/dev/null || true)"
+    if [[ "${host_short}" != "diagioc-spc" ]]; then
+        server_addr="diagioc-spc.nsls2.bnl.gov"
+    fi
+fi
+if [[ -n "${server_addr}" ]]; then
+    export EPICS_PVA_ADDR_LIST="${server_addr}"
+    export EPICS_PVA_AUTO_ADDR_LIST="NO"
+fi
+
 exec "${PIXI_ENV}/bin/python" - "${channel}" <<'PYCODE'
 import sys
 
