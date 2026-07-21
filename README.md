@@ -1,5 +1,7 @@
 # MASAR Service (EPICS 7 + Python 3)
 
+MASAR stands for **MAchine Snapshot, Archiving, and Retrieve**.
+
 This repository contains the NSLS-II MASAR server/client stack with:
 
 - EPICS 7 C++ service (`cpp/`)
