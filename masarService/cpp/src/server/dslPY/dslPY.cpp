@@ -99,7 +99,7 @@ public:
     virtual ~DSL_RDB();
     virtual void destroy();
     virtual PVStructurePtr request(
-        const std::string& functionName,int num,StringArray const &names,StringArray const &values);
+        std::string functionName,int num,StringArray const &names,StringArray const &values);
     bool init();
 private:
     DSL_RDBPtr getPtrSelf()
@@ -764,7 +764,7 @@ static NTTablePtr getLiveMachine(StringArray const & channelName,
 }
 
 PVStructurePtr DSL_RDB::request(
-    const std::string& functionName,int num,StringArray const & names,StringArray const &values)
+    std::string functionName,int num,StringArray const & names,StringArray const &values)
 {
     if (functionName.compare("getLiveMachine")==0) {
         String message;

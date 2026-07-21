@@ -98,12 +98,12 @@ public:
      * get the reason why a connect or get failed.
      * @returns the message.
      */
-    epics::pvData::String getMessage();
+    std::string getMessage();
     /**
      * The data is saved as an NTTable with alarm and timeStamp. Get it.
      * @returns the NTTable.
      */
-    epics::pvData::NTTablePtr getNTTable();
+    epics::nt::NTTablePtr getNTTable();
     /**
      * The data is saved as an NTTable with alarm and timeStamp. Get it.
      * @returns the NTTable.
