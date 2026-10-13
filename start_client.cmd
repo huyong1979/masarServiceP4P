@@ -31,6 +31,7 @@ fi
 
 # Optional: pass remote server host/IP as 2nd arg.
 # Example: ./start_client.cmd test diagioc-spc.nsls2.bnl.local
+#export EPICS_PVA_BROADCAST_PORT=5077 
 server_addr="${MASAR_SERVER_ADDR:-}"
 if [[ $# -gt 1 ]]; then
     server_addr="$2"

@@ -11,6 +11,10 @@ cpp/include/pv/
 cpp/configure/O.*/
 cpp/src/**/O.*/
 
+# Local, machine-specific overrides (not tracked)
+cpp/configure/RELEASE.local
+pixi.lock
+
 # legacy pre-flattening paths (kept for safety)
 masarService/python/**/masar.log
 masarService/cpp/bin/
