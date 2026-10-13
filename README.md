@@ -41,14 +41,12 @@ From repository root:
 
 ```bash
 cd cpp
-make -j4 -s
+make -j$(nproc) -s
 ```
 
 Notes:
 
-- Build config is in `cpp/configure/RELEASE.local`.
-- `PYTHON_BASE` must point to this repo's Pixi env:
-  `/epics/op/apps/masarService/.pixi/envs/default`.
+- Build config is in `cpp/configure/RELEASE.local`, meaning you can overwrite `EPICS_BASE` and `PYTHON_BASE`.
 
 ## Run
 
