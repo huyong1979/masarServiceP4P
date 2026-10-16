@@ -1,11 +1,9 @@
 """
-This Python module is developed to support MASAR database, which is using SQLite as back-end.  
+MASAR server package.  The live service is the pure-Python p4p/PVXS
+implementation in masarServer_p4p.py, which uses the pymasarsqlite backend
+directly.  The legacy dslPY backend-selector layer has been removed.
 """
 
 __version__ = '1.0.0'
 
-from . import dslPY
-
 __all__ = ['version']
-
-__all__.extend(dslPY.__all__)
