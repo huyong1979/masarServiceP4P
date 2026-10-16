@@ -1,14 +1,19 @@
+
 import os
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (QApplication, QDialog, QDialogButtonBox)
 
-from . import ui_commentdiag
+try:
+    from . import ui_commentdiag
+except ImportError:
+    import ui_commentdiag
 
 class CommentDlg(QDialog,
         ui_commentdiag.Ui_commentdlg):
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(CommentDlg, self).__init__(parent)
         self.setupUi(self)
         self.userID = os.popen('whoami').read()[:-1]#username without \n
         self.authorInfo.setText("Author: "+self.userID)
@@ -22,20 +27,21 @@ class CommentDlg(QDialog,
 
     def reject(self, *args, **kwargs):
         self.isAccepted = False
-        return QDialog.reject(self, *args, **kwargs)    
+        return QDialog.reject(self, *args, **kwargs)
 
-    def on_commentLineEdit_textChanged(self):
+    @Slot()
+    def on_commentTextEdit_textChanged(self):
         self.updateUi()
 
     def updateUi(self):
-        enable =  bool(self.commentLineEdit.text().strip())
-        self.buttonBox.button(QDialogButtonBox.StandardButton.Ok).setEnabled(enable)
+        enable = bool(self.commentLineEdit.text())
+        self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(enable)
 
     def result(self):
         if not self.isAccepted:
             return None
         else:
-             return (self.userID, self.commentLineEdit.text())
+            return (self.userID, str(self.commentLineEdit.text()))
 
 if __name__ == "__main__":
     import sys
@@ -45,6 +51,6 @@ if __name__ == "__main__":
     form.show()
     app.exec()
     if form.isAccepted:
-        print((form.result()))
+        print(form.result())
     else:
         print('Do nothing')

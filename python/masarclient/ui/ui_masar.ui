@@ -137,7 +137,7 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QWidget" name="configLayoutWidget">
+       <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="configVerticalLayout" stretch="0">
          <item>
           <layout class="QGridLayout" name="configGridLayout">
@@ -229,7 +229,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="eventLayoutWidget">
+       <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="eventVerticalLayout">
          <item>
           <layout class="QGridLayout" name="eventGridLayout">
@@ -445,7 +445,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="snapshotLayoutWidget">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QTabWidget" name="snapshotTabWidget">

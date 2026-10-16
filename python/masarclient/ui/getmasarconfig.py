@@ -45,7 +45,7 @@ def getmasarconfig():
                     'masar.cfg', 
                     os.path.expanduser('/etc/masar/masar.cfg'),
                     os.path.expanduser('~/.masar.cfg')])
-    except OSError:
+    except IOError:
         pass
 
     masarconfig = {}
@@ -57,4 +57,4 @@ def getmasarconfig():
     return masarconfig
 
 if __name__ == "__main__":
-    print((getmasarconfig()))
+    print(getmasarconfig())

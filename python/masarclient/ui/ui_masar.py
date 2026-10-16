@@ -21,7 +21,10 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComb
     QPlainTextEdit, QPushButton, QSizePolicy, QSplitter,
     QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
     QVBoxLayout, QWidget)
-from . import masarRC_rc
+try:
+    from . import masarRC_rc
+except ImportError:
+    import masarRC_rc
 
 class Ui_masar(object):
     def setupUi(self, masar):
@@ -69,36 +72,36 @@ class Ui_masar(object):
         self.configEventSplitter.setSizePolicy(sizePolicy)
         self.configEventSplitter.setMinimumSize(QSize(600, 0))
         self.configEventSplitter.setOrientation(Qt.Vertical)
-        self.configLayoutWidget = QWidget(self.configEventSplitter)
-        self.configLayoutWidget.setObjectName(u"configLayoutWidget")
-        self.configVerticalLayout = QVBoxLayout(self.configLayoutWidget)
+        self.layoutWidget = QWidget(self.configEventSplitter)
+        self.layoutWidget.setObjectName(u"layoutWidget")
+        self.configVerticalLayout = QVBoxLayout(self.layoutWidget)
         self.configVerticalLayout.setObjectName(u"configVerticalLayout")
         self.configVerticalLayout.setContentsMargins(0, 0, 0, 0)
         self.configGridLayout = QGridLayout()
         self.configGridLayout.setObjectName(u"configGridLayout")
-        self.systemCombox = QComboBox(self.configLayoutWidget)
+        self.systemCombox = QComboBox(self.layoutWidget)
         self.systemCombox.setObjectName(u"systemCombox")
         self.systemCombox.setCursor(QCursor(Qt.CursorShape.ArrowCursor))
         self.systemCombox.setMouseTracking(True)
 
         self.configGridLayout.addWidget(self.systemCombox, 0, 1, 1, 1)
 
-        self.systemLabel = QLabel(self.configLayoutWidget)
+        self.systemLabel = QLabel(self.layoutWidget)
         self.systemLabel.setObjectName(u"systemLabel")
 
         self.configGridLayout.addWidget(self.systemLabel, 0, 0, 1, 1)
 
-        self.configFilterLabel = QLabel(self.configLayoutWidget)
+        self.configFilterLabel = QLabel(self.layoutWidget)
         self.configFilterLabel.setObjectName(u"configFilterLabel")
 
         self.configGridLayout.addWidget(self.configFilterLabel, 1, 0, 1, 1)
 
-        self.fetchConfigButton = QPushButton(self.configLayoutWidget)
+        self.fetchConfigButton = QPushButton(self.layoutWidget)
         self.fetchConfigButton.setObjectName(u"fetchConfigButton")
 
         self.configGridLayout.addWidget(self.fetchConfigButton, 2, 0, 1, 1)
 
-        self.configTableWidget = QTableWidget(self.configLayoutWidget)
+        self.configTableWidget = QTableWidget(self.layoutWidget)
         self.configTableWidget.setObjectName(u"configTableWidget")
         self.configTableWidget.setFocusPolicy(Qt.WheelFocus)
         self.configTableWidget.setFrameShape(QFrame.WinPanel)
@@ -110,7 +113,7 @@ class Ui_masar(object):
 
         self.configGridLayout.addWidget(self.configTableWidget, 3, 0, 1, 2)
 
-        self.configFilterLineEdit = QLineEdit(self.configLayoutWidget)
+        self.configFilterLineEdit = QLineEdit(self.layoutWidget)
         self.configFilterLineEdit.setObjectName(u"configFilterLineEdit")
         self.configFilterLineEdit.setDragEnabled(True)
 
@@ -119,25 +122,25 @@ class Ui_masar(object):
 
         self.configVerticalLayout.addLayout(self.configGridLayout)
 
-        self.configEventSplitter.addWidget(self.configLayoutWidget)
-        self.eventLayoutWidget = QWidget(self.configEventSplitter)
-        self.eventLayoutWidget.setObjectName(u"eventLayoutWidget")
-        self.eventVerticalLayout = QVBoxLayout(self.eventLayoutWidget)
+        self.configEventSplitter.addWidget(self.layoutWidget)
+        self.layoutWidget1 = QWidget(self.configEventSplitter)
+        self.layoutWidget1.setObjectName(u"layoutWidget1")
+        self.eventVerticalLayout = QVBoxLayout(self.layoutWidget1)
         self.eventVerticalLayout.setObjectName(u"eventVerticalLayout")
         self.eventVerticalLayout.setContentsMargins(0, 0, 0, 0)
         self.eventGridLayout = QGridLayout()
         self.eventGridLayout.setObjectName(u"eventGridLayout")
-        self.fetchEventButton = QPushButton(self.eventLayoutWidget)
+        self.fetchEventButton = QPushButton(self.layoutWidget1)
         self.fetchEventButton.setObjectName(u"fetchEventButton")
 
         self.eventGridLayout.addWidget(self.fetchEventButton, 5, 0, 1, 2)
 
-        self.ByWho = QLabel(self.eventLayoutWidget)
+        self.ByWho = QLabel(self.layoutWidget1)
         self.ByWho.setObjectName(u"ByWho")
 
         self.eventGridLayout.addWidget(self.ByWho, 1, 0, 1, 1)
 
-        self.eventEndDateTime = QDateTimeEdit(self.eventLayoutWidget)
+        self.eventEndDateTime = QDateTimeEdit(self.layoutWidget1)
         self.eventEndDateTime.setObjectName(u"eventEndDateTime")
         self.eventEndDateTime.setEnabled(False)
         self.eventEndDateTime.setAlignment(Qt.AlignCenter)
@@ -147,7 +150,7 @@ class Ui_masar(object):
 
         self.eventGridLayout.addWidget(self.eventEndDateTime, 4, 1, 1, 2)
 
-        self.eventStartDateTime = QDateTimeEdit(self.eventLayoutWidget)
+        self.eventStartDateTime = QDateTimeEdit(self.layoutWidget1)
         self.eventStartDateTime.setObjectName(u"eventStartDateTime")
         self.eventStartDateTime.setEnabled(False)
         self.eventStartDateTime.setAlignment(Qt.AlignCenter)
@@ -156,32 +159,32 @@ class Ui_masar(object):
 
         self.eventGridLayout.addWidget(self.eventStartDateTime, 3, 1, 1, 2)
 
-        self.eventFilterLabel = QLabel(self.eventLayoutWidget)
+        self.eventFilterLabel = QLabel(self.layoutWidget1)
         self.eventFilterLabel.setObjectName(u"eventFilterLabel")
 
         self.eventGridLayout.addWidget(self.eventFilterLabel, 0, 0, 1, 1)
 
-        self.eventEndLabel = QLabel(self.eventLayoutWidget)
+        self.eventEndLabel = QLabel(self.layoutWidget1)
         self.eventEndLabel.setObjectName(u"eventEndLabel")
 
         self.eventGridLayout.addWidget(self.eventEndLabel, 4, 0, 1, 1)
 
-        self.authorTextEdit = QLineEdit(self.eventLayoutWidget)
+        self.authorTextEdit = QLineEdit(self.layoutWidget1)
         self.authorTextEdit.setObjectName(u"authorTextEdit")
 
         self.eventGridLayout.addWidget(self.authorTextEdit, 1, 2, 1, 1)
 
-        self.timeRangeCheckBox = QCheckBox(self.eventLayoutWidget)
+        self.timeRangeCheckBox = QCheckBox(self.layoutWidget1)
         self.timeRangeCheckBox.setObjectName(u"timeRangeCheckBox")
 
         self.eventGridLayout.addWidget(self.timeRangeCheckBox, 2, 0, 1, 2)
 
-        self.eventFilterLineEdit = QLineEdit(self.eventLayoutWidget)
+        self.eventFilterLineEdit = QLineEdit(self.layoutWidget1)
         self.eventFilterLineEdit.setObjectName(u"eventFilterLineEdit")
 
         self.eventGridLayout.addWidget(self.eventFilterLineEdit, 0, 2, 1, 1)
 
-        self.eventStartLabel = QLabel(self.eventLayoutWidget)
+        self.eventStartLabel = QLabel(self.layoutWidget1)
         self.eventStartLabel.setObjectName(u"eventStartLabel")
 
         self.eventGridLayout.addWidget(self.eventStartLabel, 3, 0, 1, 1)
@@ -189,7 +192,7 @@ class Ui_masar(object):
 
         self.eventVerticalLayout.addLayout(self.eventGridLayout)
 
-        self.eventTableWidget = QTableWidget(self.eventLayoutWidget)
+        self.eventTableWidget = QTableWidget(self.layoutWidget1)
         self.eventTableWidget.setObjectName(u"eventTableWidget")
         self.eventTableWidget.setMinimumSize(QSize(350, 0))
         self.eventTableWidget.setMouseTracking(True)
@@ -202,12 +205,12 @@ class Ui_masar(object):
 
         self.snapshotGridLayout = QGridLayout()
         self.snapshotGridLayout.setObjectName(u"snapshotGridLayout")
-        self.getGoldenButton = QPushButton(self.eventLayoutWidget)
+        self.getGoldenButton = QPushButton(self.layoutWidget1)
         self.getGoldenButton.setObjectName(u"getGoldenButton")
 
         self.snapshotGridLayout.addWidget(self.getGoldenButton, 2, 1, 1, 1)
 
-        self.fetchSnapshotButton = QPushButton(self.eventLayoutWidget)
+        self.fetchSnapshotButton = QPushButton(self.layoutWidget1)
         self.fetchSnapshotButton.setObjectName(u"fetchSnapshotButton")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
@@ -217,12 +220,12 @@ class Ui_masar(object):
 
         self.snapshotGridLayout.addWidget(self.fetchSnapshotButton, 5, 0, 1, 2)
 
-        self.searchSnapshotButton = QPushButton(self.eventLayoutWidget)
+        self.searchSnapshotButton = QPushButton(self.layoutWidget1)
         self.searchSnapshotButton.setObjectName(u"searchSnapshotButton")
 
         self.snapshotGridLayout.addWidget(self.searchSnapshotButton, 3, 1, 1, 1)
 
-        self.snapshotIdLineEdit = QLineEdit(self.eventLayoutWidget)
+        self.snapshotIdLineEdit = QLineEdit(self.layoutWidget1)
         self.snapshotIdLineEdit.setObjectName(u"snapshotIdLineEdit")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
@@ -232,7 +235,7 @@ class Ui_masar(object):
 
         self.snapshotGridLayout.addWidget(self.snapshotIdLineEdit, 3, 0, 1, 1)
 
-        self.setGoldenButton = QPushButton(self.eventLayoutWidget)
+        self.setGoldenButton = QPushButton(self.layoutWidget1)
         self.setGoldenButton.setObjectName(u"setGoldenButton")
 
         self.snapshotGridLayout.addWidget(self.setGoldenButton, 2, 0, 1, 1)
@@ -240,14 +243,14 @@ class Ui_masar(object):
 
         self.eventVerticalLayout.addLayout(self.snapshotGridLayout)
 
-        self.configEventSplitter.addWidget(self.eventLayoutWidget)
+        self.configEventSplitter.addWidget(self.layoutWidget1)
         self.splitter.addWidget(self.configEventSplitter)
-        self.snapshotLayoutWidget = QWidget(self.splitter)
-        self.snapshotLayoutWidget.setObjectName(u"snapshotLayoutWidget")
-        self.verticalLayout = QVBoxLayout(self.snapshotLayoutWidget)
+        self.layoutWidget2 = QWidget(self.splitter)
+        self.layoutWidget2.setObjectName(u"layoutWidget2")
+        self.verticalLayout = QVBoxLayout(self.layoutWidget2)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.snapshotTabWidget = QTabWidget(self.snapshotLayoutWidget)
+        self.snapshotTabWidget = QTabWidget(self.layoutWidget2)
         self.snapshotTabWidget.setObjectName(u"snapshotTabWidget")
         sizePolicy.setHeightForWidth(self.snapshotTabWidget.sizePolicy().hasHeightForWidth())
         self.snapshotTabWidget.setSizePolicy(sizePolicy)
@@ -287,12 +290,12 @@ class Ui_masar(object):
 
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
-        self.compareSnapshotsButton = QPushButton(self.snapshotLayoutWidget)
+        self.compareSnapshotsButton = QPushButton(self.layoutWidget2)
         self.compareSnapshotsButton.setObjectName(u"compareSnapshotsButton")
 
         self.gridLayout.addWidget(self.compareSnapshotsButton, 0, 3, 2, 1)
 
-        self.pvFilterLineEdit = QLineEdit(self.snapshotLayoutWidget)
+        self.pvFilterLineEdit = QLineEdit(self.layoutWidget2)
         self.pvFilterLineEdit.setObjectName(u"pvFilterLineEdit")
         sizePolicy1.setHeightForWidth(self.pvFilterLineEdit.sizePolicy().hasHeightForWidth())
         self.pvFilterLineEdit.setSizePolicy(sizePolicy1)
@@ -300,34 +303,34 @@ class Ui_masar(object):
 
         self.gridLayout.addWidget(self.pvFilterLineEdit, 2, 3, 1, 1, Qt.AlignLeft)
 
-        self.getLiveMachineButton = QPushButton(self.snapshotLayoutWidget)
+        self.getLiveMachineButton = QPushButton(self.layoutWidget2)
         self.getLiveMachineButton.setObjectName(u"getLiveMachineButton")
 
         self.gridLayout.addWidget(self.getLiveMachineButton, 0, 1, 2, 1)
 
-        self.saveMachineSnapshotButton = QPushButton(self.snapshotLayoutWidget)
+        self.saveMachineSnapshotButton = QPushButton(self.layoutWidget2)
         self.saveMachineSnapshotButton.setObjectName(u"saveMachineSnapshotButton")
 
         self.gridLayout.addWidget(self.saveMachineSnapshotButton, 0, 2, 2, 1)
 
-        self.restoreMachineButton = QPushButton(self.snapshotLayoutWidget)
+        self.restoreMachineButton = QPushButton(self.layoutWidget2)
         self.restoreMachineButton.setObjectName(u"restoreMachineButton")
 
         self.gridLayout.addWidget(self.restoreMachineButton, 0, 0, 2, 1)
 
-        self.saveDataFileButton = QPushButton(self.snapshotLayoutWidget)
+        self.saveDataFileButton = QPushButton(self.layoutWidget2)
         self.saveDataFileButton.setObjectName(u"saveDataFileButton")
 
         self.gridLayout.addWidget(self.saveDataFileButton, 0, 4, 2, 1)
 
-        self.pvSearchButton = QPushButton(self.snapshotLayoutWidget)
+        self.pvSearchButton = QPushButton(self.layoutWidget2)
         self.pvSearchButton.setObjectName(u"pvSearchButton")
         sizePolicy2.setHeightForWidth(self.pvSearchButton.sizePolicy().hasHeightForWidth())
         self.pvSearchButton.setSizePolicy(sizePolicy2)
 
         self.gridLayout.addWidget(self.pvSearchButton, 2, 4, 1, 1, Qt.AlignLeft)
 
-        self.rampingMachineButton = QPushButton(self.snapshotLayoutWidget)
+        self.rampingMachineButton = QPushButton(self.layoutWidget2)
         self.rampingMachineButton.setObjectName(u"rampingMachineButton")
 
         self.gridLayout.addWidget(self.rampingMachineButton, 2, 0, 1, 1)
@@ -335,7 +338,7 @@ class Ui_masar(object):
 
         self.verticalLayout.addLayout(self.gridLayout)
 
-        self.splitter.addWidget(self.snapshotLayoutWidget)
+        self.splitter.addWidget(self.layoutWidget2)
 
         self.verticalLayout_2.addWidget(self.splitter)
 
@@ -364,12 +367,12 @@ class Ui_masar(object):
         self.eventFilterLineEdit.textChanged.connect(masar.eventFilterChanged)
         self.authorTextEdit.textChanged.connect(masar.authorTextChanged)
         self.timeRangeCheckBox.stateChanged.connect(masar.useTimeRange)
-        self.fetchEventButton.clicked["void"].connect(masar.fetchEventAction)
-        self.fetchSnapshotButton.clicked["void"].connect(masar.retrieveSnapshot)
-        self.restoreMachineButton.clicked["void"].connect(masar.restoreSnapshotAction)
+        self.fetchEventButton.clicked.connect(masar.fetchEventAction)
+        self.fetchSnapshotButton.clicked.connect(masar.retrieveSnapshot)
+        self.restoreMachineButton.clicked.connect(masar.restoreSnapshotAction)
         self.getLiveMachineButton.clicked.connect(masar.getLiveMachineAction)
         self.saveDataFileButton.clicked.connect(masar.saveDataFileAction)
-        self.systemCombox.currentIndexChanged.connect(masar.systemComboxChanged)
+        self.systemCombox.currentTextChanged.connect(masar.systemComboxChanged)
         self.configFilterLineEdit.textChanged.connect(masar.configFilterChanged)
         self.fetchConfigButton.clicked.connect(masar.fetchConfigAction)
         self.snapshotTabWidget.tabCloseRequested.connect(masar.closeTab)

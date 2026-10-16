@@ -65,7 +65,7 @@ class Ui_commentdlg(object):
         self.retranslateUi(commentdlg)
         self.buttonBox.rejected.connect(commentdlg.reject)
         self.buttonBox.accepted.connect(commentdlg.accept)
-        self.commentLineEdit.textChanged.connect(commentdlg.on_commentLineEdit_textChanged)
+        self.commentLineEdit.textChanged.connect(commentdlg.on_commentTextEdit_textChanged)
 
         QMetaObject.connectSlotsByName(commentdlg)
     # setupUi
