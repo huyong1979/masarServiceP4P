@@ -888,7 +888,10 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
 
 
     def __getCommentDetail(self):
-        import commentdetail
+        try:
+            from . import commentdetail
+        except ImportError:
+            import commentdetail
         cdlg = commentdetail.CommentDetail()
         cdlg.exec_()
         if cdlg.isAccepted:
