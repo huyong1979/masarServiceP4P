@@ -495,6 +495,13 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
                 logbookName = 'Operations'
 
         try:
+            # Compatibility shim: the shared pyOlog (normally run on Python 3.6)
+            # uses configparser.SafeConfigParser, an alias removed in Python
+            # 3.12+.  It is behaviourally identical to ConfigParser, so restore
+            # the name instead of editing the read-only shared package.
+            import configparser
+            if not hasattr(configparser, 'SafeConfigParser'):
+                configparser.SafeConfigParser = configparser.ConfigParser
             from pyOlog import SimpleOlogClient
             # ask=False stops pyOlog from falling back to an interactive
             # terminal getpass() prompt (invisible to a GUI operator).
