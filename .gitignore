@@ -9,6 +9,8 @@ __pycache__/
 python/**/masar.log
 # Local golden snapshot reference data (not tracked)
 goldenSnapshotData/
+# Private fontconfig/XDG cache created by start_client.cmd
+.cache/
 
 # EPICS cpp build outputs (should not be tracked)
 cpp/bin/

@@ -18,6 +18,11 @@ export LD_LIBRARY_PATH="${PIXI_ENV}/lib:${LD_LIBRARY_PATH:-}"
 # needed by matplotlib/qtp
 export QT_API="pyside6"
 
+# Give fontconfig a private cache dir so the pixi-bundled libfontconfig builds
+# and reads its own cache instead of the shared ~/.cache/fontconfig written by
+# the newer system fontconfig (avoids the harmless version-mismatch warning).
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${ROOT_DIR}/.cache}"
+
 # resolve against system config while running under the pixi env
 if [[ -f "/etc/fonts/fonts.conf" ]]; then
     export FONTCONFIG_FILE="/etc/fonts/fonts.conf"
