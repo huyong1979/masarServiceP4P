@@ -15,6 +15,7 @@ pyside6 = ">=6.10,<7"
 pip = ">=24"
 matplotlib = ">=3.11.0,<4"
 requests = ">=2.34.2,<3"
+p4p = ">=4.1"
 
 [pypi-dependencies]
 cothread = { path = "./wheels/cothread-2.20.1-cp314-cp314-linux_x86_64.whl" }

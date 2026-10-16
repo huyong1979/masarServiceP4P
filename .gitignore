@@ -1,5 +1,9 @@
 NOTUSEDDIRS/
 *.db
+# Keep a reference database for users; local/production masar.db stays ignored.
+!masar_example.db
+# Local client backups from the C++ -> p4p migration
+*.cpp-backup
 __pycache__/
 *.pyc
 python/**/masar.log

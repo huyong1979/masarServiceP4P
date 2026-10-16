@@ -290,8 +290,11 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
                          - self.UTC_OFFSET_TIMEDELTA)
                 config_ts.append(ts)
 
-        except:
-            print("%s: Fatal error happened during retrieving Configs"%datetime.datetime.now())
+        except Exception as exc:
+            import traceback
+            print("%s: Fatal error happened during retrieving Configs: %r"
+                  % (datetime.datetime.now(), exc))
+            traceback.print_exc()
             QMessageBox.warning(self,
                                 "Warning",
                                 "Fatal error happened during retrieving configurations!")       

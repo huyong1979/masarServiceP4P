@@ -6,7 +6,11 @@
 # Author : Guobao Shen   2012.01
 #          Marty Kraimer 2011.07
 
-import channelRPCPy
+try:
+    import channelRPCPy
+except ImportError:
+    # Pure-Python client (p4p) does not need the compiled channelRPCPy module.
+    channelRPCPy = None
 
 def epicsExit() :
     """unregister ClientFactory::start().
@@ -22,7 +26,8 @@ def epicsExit() :
     
     Planning: it would be better to call epicsExit() function instead of epicsExitCallAtExits(). 
     """
-    channelRPCPy._epicsExitCallAtExits()
+    if channelRPCPy is not None:
+        channelRPCPy._epicsExitCallAtExits()
 
 class ChannelRPC(object) :
     """Create a ChannelRPC

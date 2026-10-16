@@ -1,351 +1,228 @@
 """
-This is client library for masar (Machine snapshot, archiving, and retrieve) service.
-It is implemented under EPICS V4 framework, and use pvAccess channel RPC as communication
-protocol. The data structure used here includes NTNameValue for passing arguments, and NTTable
-for data transfer.
+Pure-Python client library for the MASAR (Machine Snapshot, Archiving and
+Retrieve) service.
 
-Current masar service uses SQLite as underneath relational database back-end.
+This is a drop-in replacement for the historical C++-backed client.  It talks
+to the MASAR RPC server over pvAccess using p4p (PVXS / QSRV2) instead of the
+legacy pvAccessCPP ChannelRPC + nttablePy/ntnameValuePy wrappers.  The public
+API (class ``client`` and its methods) and all return values are identical to
+the previous implementation, so the GUI (masarclient.ui.masar) needs no change.
 
-NOTE: Call epicsExit() before exit to avoid undesired destruction problem as below:
-      sys.exit(epicsExit())
+Why pure Python:
+  * removes the dependency on the compiled masar C++ modules (nttablePy,
+    ntnameValuePy, channelRPCPy, gatherV3DataPy) and on libpvAccessCPP;
+  * avoids the modern normativeTypesCPP ``NTTable::isCompatible`` check, which
+    rejects the snapshot table's ``array_value`` structureArray column (the
+    reason "Display Snapshot" failed against the strict C++ wrapper).
 
-Created on Oct 23, 2011
+Request  : NTNameValue  { string function, string[] name, string[] value }
+Response : epics:nt/NTTable:1.0 { string[] labels, structure value,
+                                  alarm_t alarm, time_t timeStamp }
 
-@author: shengb
+@author: shengb (original), pure-Python port
 """
 
-from .channelRPC import ChannelRPC
-from .ntnameValue import NTNameValue
-from .nttable import NTTable
-from .alarm import Alarm
-from .timeStamp import TimeStamp
+from p4p import Type, Value
+from p4p.client.thread import Context
 
-class client():
-    def __init__(self, channelname = 'masarService'):
-        """
-        masar service client library. Default channel name is masarService.
-        """
+__all__ = ['client']
+
+# Request structure sent to the server.  The server matches fields by name, so
+# field order here is irrelevant.
+_NTNV_TYPE = Type([
+    ('function', 's'),
+    ('name', 'as'),
+    ('value', 'as'),
+], 'epics:nt/NTNameValue:1.0')
+
+# Default RPC timeouts (seconds).
+_TIMEOUT_DEFAULT = 10.0
+_TIMEOUT_LIVE = 25.0   # getLiveMachine / saveSnapshot perform a live CA gather
+
+
+def _build_request(function, params):
+    v = Value(_NTNV_TYPE)
+    v['function'] = function
+    names = []
+    values = []
+    if params:
+        for key, val in params.items():
+            names.append(str(key))
+            values.append('' if val is None else str(val))
+    v['name'] = names
+    v['value'] = values
+    return v
+
+
+class _ResultTable(object):
+    """Thin wrapper over an NTTable ``Value`` that mimics the handful of
+    methods the client code used from the old C++ NTTable wrapper:
+    getLabel(), getNumberValues(), getValue(index) and getUserTag()."""
+
+    def __init__(self, value):
+        self._v = value
+        try:
+            self._labels = [str(x) for x in value['labels']]
+        except Exception:
+            self._labels = []
+        # Column field names, in order, under the 'value' sub-structure.
+        try:
+            self._colnames = list(value['value'].keys())
+        except Exception:
+            self._colnames = list(self._labels)
+
+    def getLabel(self):
+        return self._labels
+
+    def getNumberValues(self):
+        return len(self._colnames)
+
+    def getUserTag(self):
+        try:
+            return int(self._v['timeStamp.userTag'])
+        except Exception:
+            return 0
+
+    def getMessage(self):
+        """Server-side status/alarm message (used to surface fault reasons)."""
+        try:
+            return str(self._v['alarm.message'])
+        except Exception:
+            return ''
+
+    @staticmethod
+    def _as_list(x):
+        if x is None:
+            return []
+        return list(x)
+
+    def getValue(self, index):
+        if index < 0 or index >= len(self._colnames):
+            return None
+        col = self._v['value.' + self._colnames[index]]
+        # structureArray column (array_value): return a per-channel tuple of
+        # (stringVal, doubleVal, intVal) lists, matching the old nttablePy
+        # getStructureArrayValue() output.
+        if isinstance(col, list) and len(col) > 0 and isinstance(col[0], Value):
+            out = []
+            for e in col:
+                out.append((self._as_list(e['stringVal']),
+                            self._as_list(e['doubleVal']),
+                            self._as_list(e['intVal'])))
+            return tuple(out)
+        # scalar array column -> plain python list
+        return self._as_list(col)
+
+
+class client(object):
+    def __init__(self, channelname='masarService'):
+        """MASAR service client.  Default channel name is masarService."""
         self.channelname = channelname
+        self._ctx = Context('pva')
 
-    def __clientRPC(self, function, params):
-        """
-        internal library for pvAccess channel RPC.
-        """
-        alarm = Alarm()
-        timeStamp = TimeStamp()
-    
-        ntnv = NTNameValue(function,params)
-        
-        # now do issue + wait
-        channelRPC = ChannelRPC(self.channelname,"record[process=true]field()")
-        channelRPC.issueConnect()
-        if not channelRPC.waitConnect(1.0) :
-            print(channelRPC.getMessage())
-            raise Exception(channelRPC.getMessage())
-        channelRPC.issueRequest(ntnv.getNTNameValue(),False)
-        result = channelRPC.waitRequest()
-        if(result==None) :
-            print(channelRPC.getMessage())
-            raise Exception(channelRPC.getMessage())
-        nttable = NTTable(result)
-        nttable.getAlarm(alarm.getAlarmPy())    
-        nttable.getTimeStamp(timeStamp.getTimeStampPy())
-        return nttable
-    
-    def __isFault(self, nttable):        
-        label = nttable.getLabel()
+    def close(self):
+        try:
+            self._ctx.close()
+        except Exception:
+            pass
+
+    # -- internal RPC helpers --------------------------------------------
+    def __clientRPC(self, function, params, timeout=_TIMEOUT_DEFAULT):
+        request = _build_request(function, params)
+        result = self._ctx.rpc(self.channelname, request, timeout=timeout)
+        if result is None:
+            raise Exception('No result returned from MASAR server for %r'
+                            % function)
+        return _ResultTable(result)
+
+    @staticmethod
+    def __isFault(table):
+        label = table.getLabel()
         if not label:
             return True
         if label[0] == 'status':
-            status = nttable.getValue(0)
-            if len(status) == 0:
+            status = table.getValue(0)
+            if status is None or len(status) == 0:
                 return True
             if not status[0]:
+                import sys as _sys
+                msg = table.getMessage()
+                _sys.stderr.write('[masar] server reported fault: %s\n'
+                                  % (msg or '<no message>'))
                 return True
         return False
 
+    # -- public API ------------------------------------------------------
     def retrieveSystemList(self):
-        """
-        Retrieve all system defined for masar service. 
-        
-        Parameters: None
-        Result:     list with all system name, otherwise, False if nothing is found.
-        """
-        function = 'retrieveServiceConfigProps'
-        params = {}
-        nttable = self.__clientRPC(function, params)
-
-        if self.__isFault(nttable):
+        """Retrieve all systems defined for the masar service.
+        Returns a sorted list of system names, or False if none found."""
+        table = self.__clientRPC('retrieveServiceConfigProps', {})
+        if self.__isFault(table):
             return False
-        
-        valueCounts = nttable.getNumberValues()
-        results = nttable.getValue(valueCounts-1)
-        return (sorted(set(results)))
-    
+        valueCounts = table.getNumberValues()
+        results = table.getValue(valueCounts - 1)
+        return sorted(set(results))
+
     def retrieveServiceConfigs(self, params):
-        """
-        Retrieve all configurations existing in current masar database.
-        All values for parameters have to be string since current NTNameValue accepts string only.
-        A wildcast search is supported for service name, configuration name, and system,
-        with "*" for multiple characters search, and "?" for single character.
-        
-        Parameters: a dictionary with predefined keys as below:
-                    'servicename': [optional] the service name, which should be 'masar'. 
-                    'configname':  [optional] the configuration name. 
-                    'system':      [optional] retrieve configuration only belongs to given system.
-                                   It will retrieve all configurations if it is empty.
-        Result:     list of list with the following format:
-                    id []:           index value of each configuration
-                    name []:         name of each configuration
-                    description []:  description of each configuration
-                    created date []: date when each configuration was created
-                    version []       version number
-                    status []:       status, active/inactive
-                    
-                    otherwise, False if nothing is found.
-        """
-        function = 'retrieveServiceConfigs'
-        nttable = self.__clientRPC(function, params)
-        
-        if self.__isFault(nttable):
+        """Retrieve configurations.  Returns a 6-tuple of columns
+        (id, name, description, created-date, version, status) or False."""
+        table = self.__clientRPC('retrieveServiceConfigs', params)
+        if self.__isFault(table):
             return False
+        return (table.getValue(0), table.getValue(1), table.getValue(2),
+                table.getValue(3), table.getValue(4), table.getValue(5))
 
-        return (nttable.getValue(0),
-                nttable.getValue(1),
-                nttable.getValue(2),
-                nttable.getValue(3),
-                nttable.getValue(4),
-                nttable.getValue(5))
-    
     def retrieveServiceEvents(self, params):
-        """
-        Retrieve event list which belong to a particular snapshot configuration.
-        It retrieves event id, user name, comment, and date, but without real data from IOC. 
-        All values for parameters have to be string since current NTNameValue accepts string only.
-        A wildcast search is supported for comment, and user name,
-        with "*" for multiple characters search, and "?" for single character.
-        
-        Internally, the date is saved in UTC format.
-        
-        Parameters: a dictionary which can have any combination of the following predefined keys:
-                    'configid': id to identify which configuration it belongs to
-                    'start':    The time range from
-                    'end':      The time range to
-                    'comment':  event contain given comment. 
-                    'user':     who did that event
-        result:     list of list with the following format:
-                    id []:     list of each event id
-                    comment:   a list to show comment for each event
-                    user name: user name list
-                    date []:   time list to show when that event happened in UTC format
-                    
-                    otherwise, False if nothing is found.
-        """
-        function = 'retrieveServiceEvents'
-        nttable = self.__clientRPC(function, params)
-
-        if self.__isFault(nttable):
+        """Retrieve the event list for a configuration.
+        Returns (id, user-tag/comment, time, user-name) or False."""
+        table = self.__clientRPC('retrieveServiceEvents', params)
+        if self.__isFault(table):
             return False
-        
-        # 0: service_event_id,
-        # 1: service_config_id,
-        # 2: service_event_user_tag,
-        # 3: service_event_UTC_time,
-        # 4: service_event_user_name
-        return (nttable.getValue(0), 
-                nttable.getValue(2),
-                nttable.getValue(3),
-                nttable.getValue(4))
-    
+        # 0: event_id, 1: config_id, 2: comment, 3: event_time, 4: user_name
+        return (table.getValue(0), table.getValue(2),
+                table.getValue(3), table.getValue(4))
+
     def retrieveSnapshot(self, params):
-        """
-        Retrieve a particular snapshot, which is flagged to be an approved snapshot, with real data.
-        The value is stored in 3 formats: string, double, and long.
-        If original value is an array, it is stored in array_value.
-        User needs to combine the dbr_type information to get right value.
-        
-        DBR_TYPE is defined in db_access.h as below:
-            #define DBF_STRING      0
-            #define DBF_INT         1
-            #define DBF_SHORT       1
-            #define DBF_FLOAT       2
-            #define DBF_ENUM        3
-            #define DBF_CHAR        4
-            #define DBF_LONG        5
-            #define DBF_DOUBLE      6
-            #define DBF_NO_ACCESS   7
-
-        They are mapped in masar service:
-            epicsLong   =   [1, 4, 5]
-            epicsString =   [0, 3]
-            epicsDouble =   [2, 6]
-            epicsNoAccess = [7]
-        which means for example, if original value is DBR_SHORT, the right place to find it will be in double value array
-        in the return result.
-        
-        Parameters: a dictionary which can have any combination of the following predefined keys:
-                    'eventid':  id of a particular event
-                    'start':    The time range from
-                    'end':      The time range to
-                    'comment':  event contain given comment. 
-
-        result:     list of list with the following format:
-                    pv name []:          pv name list
-                    string value []:     value list in string format
-                    double value []      value list in double format
-                    long value []        value list in long format
-                    dbr_type []:         EPICS DBR types
-                    isConnected []:      connection status, either True or False
-                    secondsPastEpoch []: seconds after EPOCH time
-                    nanoSeconds []:      nano-seconds
-                    alarmSeverity []:    EPICS IOC severity
-                    alarmStatus []:      EPICS IOC status
-                    is_array []:         whether value is array, either True or False
-                    array_value [[]]:    if it is array, the value is stored here.
-                            
-                    otherwise, False if nothing is found.
-        """
-        function = 'retrieveSnapshot'
-        # [pv name,string value,double value,long value,
-        #  dbr type,isConnected,secondsPastEpoch,nanoSeconds,timeStampTag,
-        #  alarmSeverity,alarmStatus,alarmMessage, is_array, array_value]
-        nttable = self.__clientRPC(function, params)
-
-        if self.__isFault(nttable):
+        """Retrieve a stored snapshot with real data.
+        Returns a 12-tuple of columns (see module/GUI docs) or False.
+        The last element (array_value) is a per-channel tuple of
+        (stringVal, doubleVal, intVal) lists."""
+        table = self.__clientRPC('retrieveSnapshot', params)
+        if self.__isFault(table):
             return False
-        
-        return (nttable.getValue(0), 
-                nttable.getValue(1), 
-                nttable.getValue(2),
-                nttable.getValue(3),
-                nttable.getValue(4),
-                nttable.getValue(5),
-                nttable.getValue(6),
-                nttable.getValue(7),
-                nttable.getValue(9),
-                nttable.getValue(10),
-                nttable.getValue(12),
-                nttable.getValue(13))
-    
+        return (table.getValue(0), table.getValue(1), table.getValue(2),
+                table.getValue(3), table.getValue(4), table.getValue(5),
+                table.getValue(6), table.getValue(7), table.getValue(9),
+                table.getValue(10), table.getValue(12), table.getValue(13))
+
     def saveSnapshot(self, params):
-        """
-        This function is to take a machine snapshot data and send data to client for preview . 
-        Meanwhile the data will be saved into database with a default flag to identify 
-        that this preview is not approved by the user yet.
-        It gives user a opportunity to confirm whether the snapshot is good or not.
-        
-        It creates an entry in both event list table, and event data table.
- 
-        Parameters: a dictionary which can have any combination of the following predefined keys:
-                    'servicename': [optional] exact service name if given
-                    'configname':  exact configuration name
-                    'comment':     [optional] exact comment. 
-
-        result:     list of list with the following format:
-                    id: id of this new event
-                    pv name []:          pv name list
-                    string value []:     value list in string format
-                    double value []      value list in double format
-                    long value []        value list in long format
-                    dbr_type []:         EPICS DBR types
-                    isConnected []:      connection status, either True or False
-                    secondsPastEpoch []: seconds after EPOCH time
-                    nanoSeconds []:      nano-seconds
-                    alarmSeverity []:    EPICS IOC severity
-                    alarmStatus []:      EPICS IOC status
-                    is_array []:         whether value is array, either True or False
-                    array_value [[]]:    if it is array, the value is stored here.
-                            
-                    otherwise, False if operation failed.
-        """
-        function = 'saveSnapshot'
-        nttable = self.__clientRPC(function, params)
-
-        if self.__isFault(nttable):
+        """Take a live machine snapshot, store it as an unapproved preview and
+        return it.  Returns (eventid, <same 12 columns as retrieveSnapshot>) or
+        False."""
+        table = self.__clientRPC('saveSnapshot', params, timeout=_TIMEOUT_LIVE)
+        if self.__isFault(table):
             return False
-
-        ts = TimeStamp()
-        # [pv name,string value,double value,long value,
-        #  dbr type,isConnected,secondsPastEpoch,nanoSeconds,timeStampTag,
-        #  alarmSeverity,alarmStatus,alarmMessage, is_array, array_value]
-        nttable.getTimeStamp(ts.getTimeStampPy())
-        return (ts.getUserTag(),
-                nttable.getValue(0), 
-                nttable.getValue(1), 
-                nttable.getValue(2),
-                nttable.getValue(3),
-                nttable.getValue(4),
-                nttable.getValue(5),
-                nttable.getValue(6),
-                nttable.getValue(7),
-                nttable.getValue(9),
-                nttable.getValue(10),
-                nttable.getValue(12),
-                nttable.getValue(13))
+        return (table.getUserTag(),
+                table.getValue(0), table.getValue(1), table.getValue(2),
+                table.getValue(3), table.getValue(4), table.getValue(5),
+                table.getValue(6), table.getValue(7), table.getValue(9),
+                table.getValue(10), table.getValue(12), table.getValue(13))
 
     def updateSnapshotEvent(self, params):
-        """
-        Approve a particular snapshot.
-        User can put name and give a comment to that snapshot.
-        Parameters: a dictionary which can have any combination of the following predefined keys:
-                    'eventid': id of event to be approval
-                    'user':    user name to identify who approves/takes this snapshot
-                    'desc':    any comment to describe this snapshot. 
-
-        result:     True, otherwise, False if operation failed.
-        """
-        function = 'updateSnapshotEvent'
-        nttable = self.__clientRPC(function, params)
-#
-#        if self.__isFault(nttable):
-#            return False
-        
-        return nttable.getValue(0)[0]
-    
-    def getLiveMachine(self, params):
-        """
-        Get live data with given pv list, and uses pv name as both key and value. 
-        Same as retrieveSnapshot function, for a scalar pv, its value is carried in string, double and long. For a waveform/array, 
-        its value is carried in array_value. Client needs to check the pv is an array by checking is_array, and check its data type 
-        by checking dbr_type.
-
-        Parameters: a dictionary which can have any combination of the following predefined keys:
-                    'servicename': [optional] exact service name if given
-                    'configname':  exact configuration name
-                    'comment':     [optional] exact comment. 
-
-        result:     list of list with the following format:
-                    pv name []:          pv name list
-                    string value []:     value list in string format
-                    double value []      value list in double format
-                    long value []        value list in long format
-                    dbr_type []:         EPICS DBR types
-                    isConnected []:      connection status, either True or False
-                    secondsPastEpoch []: seconds after EPOCH time
-                    nanoSeconds []:      nano-seconds
-                    alarmSeverity []:    EPICS IOC severity
-                    alarmStatus []:      EPICS IOC status
-                    is_array []:         whether value is array, either True or False
-                    array_value [[]]:    if it is array, the value is stored here.
-                            
-                    otherwise, False if operation failed.
-        """        
-        function = 'getLiveMachine'
-        nttable = self.__clientRPC(function, params)
-
-        if self.__isFault(nttable):
+        """Approve a snapshot.  Returns True on success, False otherwise."""
+        table = self.__clientRPC('updateSnapshotEvent', params)
+        status = table.getValue(0)
+        if status is None or len(status) == 0:
             return False
-        
-        # channelName,stringValue,doubleValue,longValue,dbrType,isConnected, is_array, array_value
-        return (nttable.getValue(0),
-                nttable.getValue(1),
-                nttable.getValue(2),
-                nttable.getValue(3),
-                nttable.getValue(4),
-                nttable.getValue(5),
-                nttable.getValue(6),
-                nttable.getValue(7),
-                nttable.getValue(9),
-                nttable.getValue(10),
-                nttable.getValue(12),
-                nttable.getValue(13))
+        return status[0]
+
+    def getLiveMachine(self, params):
+        """Get live data for the given PV list (pv name is both key and value).
+        Returns the same 12-tuple layout as retrieveSnapshot, or False."""
+        table = self.__clientRPC('getLiveMachine', params, timeout=_TIMEOUT_LIVE)
+        if self.__isFault(table):
+            return False
+        return (table.getValue(0), table.getValue(1), table.getValue(2),
+                table.getValue(3), table.getValue(4), table.getValue(5),
+                table.getValue(6), table.getValue(7), table.getValue(9),
+                table.getValue(10), table.getValue(12), table.getValue(13))
