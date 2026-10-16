@@ -15,7 +15,10 @@ fi
 export PYTHONPATH="/epics/op/apps/pyOlog:${ROOT_DIR}/python:${PYTHONPATH:-}"
 export LD_LIBRARY_PATH="${PIXI_ENV}/lib:${LD_LIBRARY_PATH:-}"
 
+# needed by matplotlib/qtp
 export QT_API="pyside6"
+
+# resolve against system config while running under the pixi env
 if [[ -f "/etc/fonts/fonts.conf" ]]; then
     export FONTCONFIG_FILE="/etc/fonts/fonts.conf"
 fi

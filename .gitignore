@@ -7,6 +7,8 @@ NOTUSEDDIRS/
 __pycache__/
 *.pyc
 python/**/masar.log
+# Local golden snapshot reference data (not tracked)
+goldenSnapshotData/
 
 # EPICS cpp build outputs (should not be tracked)
 cpp/bin/
