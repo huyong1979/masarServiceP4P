@@ -422,7 +422,10 @@ class masarUI(QMainWindow, ui_masar.Ui_masar):
 
         if masarConfigDict['LDAP']['existing'] == 'True':
             import ldap
-            from authendlg import AuthenDlg
+            try:
+                from .authendlg import AuthenDlg
+            except ImportError:
+                from authendlg import AuthenDlg
 
             userID = self.userID
             dlg = AuthenDlg(self.tempPW)
