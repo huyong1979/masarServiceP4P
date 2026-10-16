@@ -244,6 +244,22 @@ def gather_live(channel_names):
     results = catools.caget(list(channel_names), format=catools.FORMAT_TIME,
                             timeout=timeout, throw=False)
 
+    # DBF_ENUM (dbr type 3) channels come back as a numeric index from a plain
+    # caget.  The legacy C++ GatherV3Data stored the enum *label* string (e.g.
+    # 'Enabled'), so do a second pass over just the enum channels requesting
+    # DBR_ENUM_STR to resolve their string choices.  Keeps wire compatibility
+    # with snapshots saved by the old MASAR server.
+    enum_labels = {}
+    enum_names = [name for name, r in zip(channel_names, results)
+                  if getattr(r, 'ok', False) and int(getattr(r, 'datatype', 0)) == 3]
+    if enum_names:
+        enum_results = catools.caget(enum_names, datatype=catools.DBR_ENUM_STR,
+                                     format=catools.FORMAT_TIME,
+                                     timeout=timeout, throw=False)
+        for en, er in zip(enum_names, enum_results):
+            if getattr(er, 'ok', False):
+                enum_labels[en] = er
+
     rows = []
     for name, r in zip(channel_names, results):
         connected = bool(getattr(r, 'ok', False))
@@ -266,13 +282,20 @@ def gather_live(channel_names):
             sec = int(ts)
             nano = int(round((ts - sec) * 1e9))
 
-            # determine array vs scalar
-            try:
-                count = len(r)
-                scalar = False
-            except TypeError:
+            # determine array vs scalar.  A DBF_STRING scalar comes back from
+            # catools as a Python str (ca_str), which supports len() and would
+            # otherwise be mistaken for an N-character array -- treat str/bytes
+            # as a single scalar value.
+            if isinstance(r, (str, bytes)):
                 count = 1
                 scalar = True
+            else:
+                try:
+                    count = len(r)
+                    scalar = False
+                except TypeError:
+                    count = 1
+                    scalar = True
             # a 1-element waveform is still a scalar to CA semantics here
             is_array = 0 if (scalar or count == 1) else 1
 
@@ -281,6 +304,8 @@ def gather_live(channel_names):
                     array_value = [int(x) for x in r]
                 elif dbr in EPICS_DOUBLE:
                     array_value = [float(x) for x in r]
+                elif dbr == 3 and name in enum_labels:  # enum array -> labels
+                    array_value = [str(x) for x in enum_labels[name]]
                 else:
                     array_value = [str(x) for x in r]
             else:
@@ -293,7 +318,10 @@ def gather_live(channel_names):
                     long_value = int(scalar_val)
                     double_value = float(long_value)
                     string_value = '%d' % long_value
-                else:  # string / enum
+                elif dbr == 3 and name in enum_labels:  # enum -> label string
+                    el = enum_labels[name]
+                    string_value = str(el if scalar else el[0])
+                else:  # string / enum (label unavailable)
                     string_value = str(scalar_val)
 
         rows.append((
