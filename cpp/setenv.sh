@@ -1,2 +1,0 @@
-export PYTHONPATH=~/Development/epicsV4/masarService/python:~/Development/epicsV4/masarService/cpp/src/python
-export MASAR_SQLITE_DB=~/Development/epicsV4/masarService/example/masar.db

@@ -1,5 +1,0 @@
-EPICS_BASE=/usr/lib/epics
-PYTHON_BASE=$(TOP)/../.pixi/envs/default
-
-# NOTE: EPICS RELEASE files require ABSOLUTE paths ( or relative path to $(TOP))
-#PYTHON_BASE=/nsls2/users/yhu/src/masarService/.pixi/envs/default
